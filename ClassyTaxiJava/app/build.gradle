@@ -19,7 +19,6 @@ apply plugin: 'com.google.gms.google-services'  // Google Services plugin
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.sample.android.classytaxijava"
         minSdkVersion 21
@@ -40,8 +39,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        dataBinding = true
     }
 }
 
@@ -65,7 +64,7 @@ dependencies {
     // These libraries versions are known to be compatible with each other.
     // If you encounter a build error "Cannot Access Hide", it means the Firebase libraries'
     // versions you are using are not compatible.
-    implementation 'com.firebaseui:firebase-ui-auth:3.3.0'
+    implementation 'com.firebaseui:firebase-ui-auth:7.2.0'
     implementation 'com.google.firebase:firebase-auth:12.0.1'
     implementation 'com.google.firebase:firebase-core:12.0.1'
     implementation 'com.google.firebase:firebase-functions:12.0.1'
