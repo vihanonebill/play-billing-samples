@@ -17,7 +17,7 @@
 import * as firebase from 'firebase-admin';
 firebase.initializeApp();
 
-import { content_basic, content_premium } from './controller/functions/content'
+import { content_basic, content_premium, content_basic_v2, content_premium_v2  } from './controller/functions/content'
 import { subscription_register, subscription_status, subscription_transfer, realtime_notification_listener } from './controller/functions/subscription'
 import { instanceId_register, instanceId_unregister } from './controller/functions/instance_id'
 
@@ -26,7 +26,7 @@ import { instanceId_register, instanceId_unregister } from './controller/functio
  * It exposes functions that will be deployed to the backend
  */
 
-// This is a trick to improve performance when there are many functions, 
+// This is a trick to improve performance when there are many functions,
 // by only exporting the function that is needed by the particular instance.
 if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'content_basic') {
   exports.content_basic = content_basic;
@@ -58,4 +58,12 @@ if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'instanceId_regi
 
 if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'instanceId_unregister') {
   exports.instanceId_unregister = instanceId_unregister;
+}
+
+if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'content_basic_v2') {
+  exports.content_basic_v2 = content_basic_v2;
+}
+
+if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'content_premium_v2') {
+  exports.content_premium_v2 = content_premium_v2;
 }

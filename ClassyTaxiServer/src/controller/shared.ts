@@ -47,3 +47,59 @@ export function verifyInstanceIdToken(context: functions.https.CallableContext) 
     throw new functions.https.HttpsError('invalid-argument', 'No Instance Id specified')
   }
 }
+
+/**
+ * Return a Promise that verifies Firebase Auth ID Token before returning a DecodedIdToken.
+ *
+ * https://firebase.google.com/docs/auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients
+ * https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_the_firebase_admin_sdk
+ *
+ * @param idToken Firebase Auth ID Token.
+ * @returns Promise that returns a DecodedIdToken or throws HttpsError.
+ */
+ export function verifyFirebaseAuthIdToken(request: functions.Request, response: functions.Response): Promise<firebase.auth.DecodedIdToken> {
+  // The ID token is included in a custom HTTP header.
+  // The client must get the ID Token from the Firebase Auth SDK.
+  // * https://firebase.google.com/docs/auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients
+  const idToken = request.get('X-FireIDToken');
+  // Perform a simple check to see if the token was provided.
+  if (!idToken || typeof idToken !== 'string') {
+    // Note: This function guarantees that it will return a Promise.
+    // Instead of throwing the error directly, we return a Promise that throws the HttpsError.
+    return new Promise<firebase.auth.DecodedIdToken>((resolve, reject) => {
+      throw new functions.https.HttpsError('unauthenticated', 'No valid header X-FireIDToken');
+    });
+  }
+  return firebase
+    .auth()
+    .verifyIdToken(idToken)
+    .then((decodedToken) => {
+      return decodedToken;
+    }).catch((error) => {
+      // Otherwise, the token was provided but invalid.
+      throw new functions.https.HttpsError('permission-denied', 'Invalid ID Token: ' + idToken)
+    });
+}
+
+/**
+ * Send HTTPS error response based on HttpsError.
+ *
+ * @param error HttpsError with the error code and message.
+ * @param response Response object for sending the HTTP response.
+ */
+export function sendHttpsError(error: functions.https.HttpsError, response: functions.Response) {
+  let code = 500;
+  // See list of possible HttpsError code values.
+  // https://firebase.google.com/docs/reference/functions/providers_https_#functionserrorcode
+  if (error.code === 'unauthenticated') {
+    code = 401;
+  } else if (error.code === 'permission-denied') {
+    code = 403;
+  }
+  const data = {
+    status: code,
+    error: error.code,
+    message: error.message
+  };
+  response.status(code).send(data);
+}
