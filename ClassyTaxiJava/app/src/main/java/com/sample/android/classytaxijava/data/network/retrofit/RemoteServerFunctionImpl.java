@@ -18,21 +18,21 @@ package com.sample.android.classytaxijava.data.network.retrofit;
 
 import android.util.Log;
 
-import com.sample.android.classytaxijava.BuildConfig;
 import com.sample.android.classytaxijava.data.ContentResource;
 import com.sample.android.classytaxijava.data.SubscriptionStatus;
 import com.sample.android.classytaxijava.data.network.firebase.ServerFunctions;
+import com.sample.android.classytaxijava.data.network.retrofit.authentication.RetrofitClient;
 
 import androidx.lifecycle.LiveData;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.util.List;
 
 import androidx.lifecycle.MutableLiveData;
+
+import static com.sample.android.classytaxijava.BuildConfig.SERVER_URL;
 
 /**
  * Implementation of Interfaces with Retrofit.
@@ -45,12 +45,7 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
     private final MutableLiveData<ContentResource> basicContent = new MutableLiveData<>();
     private final MutableLiveData<ContentResource> premiumContent = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>();
-
-    // Retrofit Builder.
-    private Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl(BuildConfig.SERVER_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
+    private final RetrofitClient<SubscriptionStatusApiCall> retrofitClient = new RetrofitClient<SubscriptionStatusApiCall>(SERVER_URL, SubscriptionStatusApiCall.class);
 
     private RemoteServerFunctionImpl() {
     }
@@ -108,31 +103,34 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
     @Override
     public void updateBasicContent() {
         // Instance for the Basic Content Interface.
-        SubscriptionStatusApiCall basicCall = retrofit.create(SubscriptionStatusApiCall.class);
-        Call<ContentResource> call = basicCall.fetchBasicContent();
-        call.enqueue(new Callback<ContentResource>() {
-            @Override
-            public void onResponse(Call<ContentResource> call, Response<ContentResource> response) {
-                if (response.isSuccessful()) {
-                    Log.i(TAG, "basicCall is successful");
-                    ContentResource responseData = response.body();
-                    if (responseData == null) {
-                        Log.e(TAG, "Invalid basic subscription data");
-                        return;
-                    } else {
-                        basicContent.postValue(responseData);
+        retrofitClient.getService().fetchBasicContent()
+            .enqueue(new Callback<ContentResource>() {
+                @Override
+                public void onResponse(Call<ContentResource> call, Response<ContentResource> response) {
+                    if (response.isSuccessful()) {
+                        Log.i(TAG, "basicCall is successful");
+                        ContentResource responseData = response.body();
+                        if (responseData == null) {
+                            Log.e(TAG, "Invalid basic subscription data");
+                            return;
+                        } else {
+                            basicContent.postValue(responseData);
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<ContentResource> call, Throwable t) {
-                Log.i(TAG, "basicCall failed");
-                return;
-            }
-        });
+                @Override
+                public void onFailure(Call<ContentResource> call, Throwable t) {
+                    Log.i(TAG, "basicCall failed");
+                    return;
+                }
+            });
     }
 
+    /**
+     * Fetches premium content and posts results to {@link #premiumContent}.
+     * This will fail if the user does not have a premium subscription.
+     */
     public void updatePremiumContent() {
         // TODO(cassigbe@): Implement updatePremiumContent method.
     }
