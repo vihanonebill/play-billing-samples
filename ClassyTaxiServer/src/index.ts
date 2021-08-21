@@ -19,7 +19,7 @@ firebase.initializeApp();
 
 import { content_basic, content_premium, content_basic_v2, content_premium_v2  } from './controller/functions/content'
 import { subscription_register, subscription_status, subscription_transfer, realtime_notification_listener } from './controller/functions/subscription'
-import { instanceId_register, instanceId_unregister } from './controller/functions/instance_id'
+import { instanceId_register, instanceId_register_v2, instanceId_unregister, instanceId_unregister_v2 } from './controller/functions/instance_id'
 
 /*
  * This file is the main entrace for Cloud Functions for Firebase.
@@ -66,4 +66,12 @@ if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'content_basic_v
 
 if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'content_premium_v2') {
   exports.content_premium_v2 = content_premium_v2;
+}
+
+if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'instanceId_register_v2') {
+  exports.instanceId_register_v2 = instanceId_register_v2;
+}
+
+if (!process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === 'instanceId_unregister_v2') {
+  exports.instanceId_unregister_v2 = instanceId_unregister_v2;
 }
