@@ -16,6 +16,7 @@
 
 package com.sample.android.classytaxijava.data.network.retrofit;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.sample.android.classytaxijava.data.ContentResource;
@@ -23,23 +24,19 @@ import com.sample.android.classytaxijava.data.SubscriptionStatus;
 import com.sample.android.classytaxijava.data.network.firebase.ServerFunctions;
 import com.sample.android.classytaxijava.data.network.retrofit.authentication.RetrofitClient;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
-import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import androidx.lifecycle.MutableLiveData;
 
 import static com.sample.android.classytaxijava.BuildConfig.SERVER_URL;
+
 
 /**
  * Implementation of Interfaces with Retrofit.
@@ -103,30 +100,6 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
         return premiumContent;
     }
 
-    /**
-     * Logs HTTPS call failure message.
-     *
-     * @param method
-     * @param throwableResponse
-     */
-    private void logHttpsCallFailure(@NonNull String method, @NonNull Throwable throwableResponse) {
-        Log.w(TAG, "Call to " + method + " failed: " + throwableResponse.getMessage());
-    }
-
-    /**
-     * Checks if HTTPS call response back is null.
-     * Logs response back error.
-     *
-     * @param method
-     * @param errorResponseBody
-     */
-    private void logHttpsResponseError(@NonNull String method, @Nullable ResponseBody errorResponseBody) {
-        if (errorResponseBody == null) {
-            Log.w(TAG, method + ": No error response body returned");
-        } else {
-            Log.w(TAG, "Response to " + method + " errored out: " + errorResponseBody);
-        }
-    }
 
     /**
      * Fetches basic content and posts results to {@link #basicContent}.
@@ -134,30 +107,12 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
      */
     @Override
     public void updateBasicContent() {
-        // Instance for the Basic Content Interface.
-        String method = "updateBasicContent";
-        retrofitClient.getService().fetchBasicContent()
-            .enqueue(new Callback<ContentResource>() {
-                @Override
-                public void onResponse(@NonNull Call<ContentResource> call, @NonNull Response<ContentResource> response) {
-                    if (response.isSuccessful()) {
-                        Log.i(TAG, "basicCall is successful");
-                        ContentResource responseData = response.body();
-                        if (responseData == null) {
-                            Log.w(TAG, "Invalid basic subscription data");
-                        } else {
-                            basicContent.postValue(responseData);
-                        }
-                    } else {
-                        logHttpsResponseError(method, response.errorBody());
-                    }
-                }
-
-                @Override
-                public void onFailure(@NonNull Call<ContentResource> call, @NonNull Throwable t) {
-                    logHttpsCallFailure(method, t);
-                }
-            });
+        final String method = "updateBasicContent";
+        retrofitClient.getService().fetchBasicContent().enqueue(new RetrofitResponseHandlerCallback<ContentResource>(method) {
+            protected void onSuccess(ContentResource response) {
+                basicContent.postValue(response);
+            }
+        });
     }
 
     /**
@@ -165,77 +120,173 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
      * This will fail if the user does not have a premium subscription.
      */
     public void updatePremiumContent() {
-        // TODO(cassigbe@): Implement updatePremiumContent method.
-    }
-
-    public void updateSubscriptionStatus() {
-        // TODO(cassigbe@): Implement updateSubscriptionStatus method.
-    }
-
-    public void registerSubscription(String sku, String purchaseToken) {
-        // TODO(cassigbe@): Implement registerSubscription method.
-    }
-
-    public void transferSubscription(String sku, String purchaseToken) {
-        // TODO(cassigbe@): Implement transferSubscription method.
-    }
-
-    /**
-     * Register Instance ID for Firebase Cloud Messaging.
-     *
-     * @param instanceId an FCM registration/instance token returned by
-     * {@link com.sample.android.classytaxijava.data.network.retrofit.authentication.FcmRegistrationToken}
-     */
-    @Override
-    public void registerInstanceId(String instanceId) {
-        String method = "registerInstanceId";
-        Map<String, String> data = new HashMap<>();
-        data.put("instanceId", instanceId);
-        retrofitClient.getService().registerInstanceID(data)
-                .enqueue(new Callback<String>() {
-                    @Override
-                    public void onResponse(Call<String> call, @NonNull Response<String> response) {
-                        if (response.isSuccessful()) {
-                            Log.i(TAG, "Instance ID registration successful.");
-                        } else {
-                           logHttpsResponseError(method, response.errorBody());
-                        }
-                    }
-
+        final String method = "updatePremiumContent";
+        retrofitClient.getService().fetchPremiumContent().enqueue(new RetrofitResponseHandlerCallback<ContentResource>(method) {
             @Override
-            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-                logHttpsCallFailure(method, t);
+            protected void onSuccess(ContentResource response) {
+                premiumContent.postValue(response);
             }
         });
     }
 
     /**
-     * Unregister Instance ID for Firebase Cloud Messaging.
+     * Fetches the Subscription Status from the server.
+     */
+    public void updateSubscriptionStatus() {
+        final String method = "updateSubscriptionStatus";
+        retrofitClient.getService().fetchSubscriptionStatus().enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method) {
+            @Override
+            protected void onSuccess(Map<String, Object> response) {
+                onSuccessfulSubscriptionCall(response, subscriptions);
+            }
+        });
+    }
+
+    /**
+     * Registers a subscription with the server and posts successful results to
+     * {@link #subscriptions}.
+     *
+     * @param sku           the ID of a specific product type
+     * @param purchaseToken string that represents a buyer's entitlement to a product on Google Play
+     */
+    public void registerSubscription(String sku, String purchaseToken) {
+        final String method = "registerSubscription";
+        SubscriptionStatus data = new SubscriptionStatus();
+        data.sku = sku;
+        data.purchaseToken = purchaseToken;
+        retrofitClient.getService().registerSubscription(data).enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method) {
+            @Override
+            protected void onSuccess(Map<String, Object> response) {
+                onSuccessfulSubscriptionCall(response, subscriptions);
+            }
+
+            @Override
+            protected void onError(int errorCode, @Nullable String errorMessage) {
+                if (errorCode == HttpURLConnection.HTTP_CONFLICT) {
+                    Log.w(TAG, "Subscription already exists");
+                    List<SubscriptionStatus> oldSubscriptions =
+                            subscriptions.getValue();
+                    SubscriptionStatus newSubscription =
+                            SubscriptionStatus
+                                    .alreadyOwnedSubscription(sku, purchaseToken);
+                    List<SubscriptionStatus> newSubscriptions =
+                            insertOrUpdateSubscription(oldSubscriptions,
+                                    newSubscription);
+                    subscriptions.postValue(newSubscriptions);
+                }
+                super.logError(errorCode, errorMessage);
+            }
+        });
+    }
+
+    /**
+     * Transfers subscription to this account posts successful results to {@link #subscriptions}.
+     *
+     * @param sku           the ID of a specific product type
+     * @param purchaseToken string that represents a buyer's entitlement to a product on Google Play
+     */
+    public void transferSubscription(String sku, String purchaseToken) {
+        final String method = "transferSubscription";
+        SubscriptionStatus data = new SubscriptionStatus();
+        data.sku = sku;
+        data.purchaseToken = purchaseToken;
+        retrofitClient.getService().transferSubscription(data).enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method) {
+            @Override
+            protected void onSuccess(Map<String, Object> response) {
+                onSuccessfulSubscriptionCall(response, subscriptions);
+            }
+        });
+    }
+
+    /**
+     * Registers Instance ID for Firebase Cloud Messaging.
      *
      * @param instanceId an FCM registration/instance token returned by
-     * {@link com.sample.android.classytaxijava.data.network.retrofit.authentication.FcmRegistrationToken}
+     *                   {@link com.sample.android.classytaxijava.FcmRegistrationTokenService}
+     */
+    @Override
+    public void registerInstanceId(String instanceId) {
+        final String method = "registerInstanceId";
+        Map<String, String> data = new HashMap<>();
+        data.put("instanceId", instanceId);
+        retrofitClient.getService().registerInstanceID(data).enqueue(new RetrofitResponseHandlerCallback<String>(method) {
+            @Override
+            protected void onSuccess(String response) {
+                // A production app may want to track whether registration has been successful to allow for retrying.
+            }
+        });
+    }
+
+    /**
+     * Unregisters Instance ID for Firebase Cloud Messaging.
+     *
+     * @param instanceId an FCM registration/instance token returned by
+     *                   {@link com.sample.android.classytaxijava.FcmRegistrationTokenService}
      */
     @Override
     public void unregisterInstanceId(String instanceId) {
-        String method = "unregisterInstanceId";
+        final String method = "unregisterInstanceId";
         Map<String, String> data = new HashMap<>();
         data.put("instanceId", instanceId);
-        retrofitClient.getService().unregisterInstanceID(data)
-                .enqueue(new Callback<String>() {
-                    @Override
-                    public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
-                        if (response.isSuccessful()) {
-                            Log.i(TAG, "Instance ID un-registration successful.");
-                        } else {
-                            logHttpsResponseError(method, response.errorBody());
-                        }
-                    }
+        retrofitClient.getService().unregisterInstanceID(data).enqueue(new RetrofitResponseHandlerCallback<String>(method) {
+            @Override
+            protected void onSuccess(String response) {
+                // A production app may want to track whether un-registration has been successful to allow for retrying.
+            }
+        });
+    }
 
-                    @Override
-                    public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-                        logHttpsCallFailure(method, t);
-                    }
-                });
+    // Helper functions
+
+    /**
+     * Inserts or updates the subscription to the list of existing subscriptions.
+     * <p>
+     * If none of the existing subscriptions have a SKU that matches, insert this SKU.
+     * If a subscription exists with the matching SKU, the output list will contain the new
+     * subscription instead of the old subscription.
+     */
+    private List<SubscriptionStatus> insertOrUpdateSubscription(
+            List<SubscriptionStatus> oldSubscriptions,
+            SubscriptionStatus newSubscription) {
+        List<SubscriptionStatus> subscriptionStatuses = new ArrayList<>();
+        if (oldSubscriptions == null || oldSubscriptions.isEmpty()) {
+            subscriptionStatuses.add(newSubscription);
+            return subscriptionStatuses;
+        }
+
+        boolean subscriptionAdded = false;
+        for (SubscriptionStatus subscription : oldSubscriptions) {
+            if (TextUtils.equals(subscription.sku, newSubscription.sku)) {
+                subscriptionStatuses.add(newSubscription);
+                subscriptionAdded = true;
+            } else {
+                subscriptionStatuses.add(subscription);
+            }
+        }
+
+        if (!subscriptionAdded) {
+            subscriptionStatuses.add(newSubscription);
+        }
+
+        return subscriptionStatuses;
+    }
+
+    /**
+     * Called when a successful response returns from the server
+     * for a {@link SubscriptionStatus} HTTPS call
+     *
+     * @param responseBody  Successful subscription statuses response object
+     * @param subscriptions LiveData subscription list
+     */
+    protected void onSuccessfulSubscriptionCall(Map<String, Object> responseBody, @Nullable MutableLiveData<List<SubscriptionStatus>> subscriptions) {
+        List subs = (List) responseBody.get("subscriptions");
+        if (subs.isEmpty()) {
+            Log.w(TAG, "Invalid subscription data");
+            return;
+        }
+        Log.i(TAG, "Valid subscription data");
+        List<SubscriptionStatus> subList = SubscriptionStatus.listFromMap(responseBody);
+        subscriptions.postValue(subList);
     }
 }
 

@@ -33,6 +33,8 @@ public interface SubscriptionStatusApiCall {
     public static final String BASIC_CONTENT = "content_basic_v2";
     public static final String PREMIUM_CONTENT = "content_premium_v2";
     public static final String SUBSCRIPTION_STATUS = "subscription_status_v2";
+    public static final String REGISTER_SUBSCRIPTION = "subscription_register_v2";
+    public static final String TRANSFER_SUBSCRIPTION = "subscription_transfer_v2";
     public static final String REGISTER_INSTANCE_ID = "instanceId_register_v2";
     public static final String UNREGISTER_INSTANCE_ID = "instanceId_unregister_v2";
 
@@ -55,4 +57,12 @@ public interface SubscriptionStatusApiCall {
     // Unregisters Instance ID for Firebase Cloud Messaging.
     @PUT(UNREGISTER_INSTANCE_ID)
     Call<String> unregisterInstanceID(@Body Map<String, String> instanceId);
+
+    // Registers subscription status to the server.
+    @PUT(REGISTER_SUBSCRIPTION)
+    Call<Map<String, Object>> registerSubscription(@Body SubscriptionStatus registerStatus);
+
+    // Transfers subscription status to another account.
+    @PUT(TRANSFER_SUBSCRIPTION)
+    Call<Map<String, Object>> transferSubscription(@Body SubscriptionStatus transferStatus);
 }
