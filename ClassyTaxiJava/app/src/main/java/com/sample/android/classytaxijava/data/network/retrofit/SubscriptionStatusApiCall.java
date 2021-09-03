@@ -19,16 +19,22 @@ package com.sample.android.classytaxijava.data.network.retrofit;
 import com.sample.android.classytaxijava.data.ContentResource;
 import com.sample.android.classytaxijava.data.SubscriptionStatus;
 
+import java.util.Map;
+
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.PUT;
 
 /**
- * Basic and Premium Content API Interfaces.
+ * Retrofit API Interfaces.
  */
 public interface SubscriptionStatusApiCall {
-    public static final String BASIC_CONTENT = "content_basic";
-    public static final String PREMIUM_CONTENT = "content_premium";
-
+    public static final String BASIC_CONTENT = "content_basic_v2";
+    public static final String PREMIUM_CONTENT = "content_premium_v2";
+    public static final String SUBSCRIPTION_STATUS = "subscription_status_v2";
+    public static final String REGISTER_INSTANCE_ID = "instanceId_register_v2";
+    public static final String UNREGISTER_INSTANCE_ID = "instanceId_unregister_v2";
 
     // Fetch Basic content.
     @GET(BASIC_CONTENT)
@@ -37,4 +43,16 @@ public interface SubscriptionStatusApiCall {
     // Fetch Premium content.
     @GET(PREMIUM_CONTENT)
     Call<ContentResource> fetchPremiumContent();
+
+    // Fetch Subscription Status.
+    @GET(SUBSCRIPTION_STATUS)
+    Call<Map<String, Object>> fetchSubscriptionStatus();
+
+    // Registers Instance ID for Firebase Cloud Messaging.
+    @PUT(REGISTER_INSTANCE_ID)
+    Call<String> registerInstanceID(@Body Map<String, String> instanceId);
+
+    // Unregisters Instance ID for Firebase Cloud Messaging.
+    @PUT(UNREGISTER_INSTANCE_ID)
+    Call<String> unregisterInstanceID(@Body Map<String, String> instanceId);
 }
