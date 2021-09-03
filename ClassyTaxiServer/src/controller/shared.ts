@@ -82,6 +82,47 @@ export function verifyInstanceIdToken(context: functions.https.CallableContext) 
 }
 
 /**
+ * Verify if the user making the call has a valid FCM registration token/instance Id.
+ * Function blocks on calls to Firebase.
+ *
+ * @param request Request object from the HTTP request.
+ * @param response Response object for sending the HTTP response.
+ *
+ * @return Promise that returns a boolean or throws HttpsError.
+ */
+export function verifyInstanceIdTokenV2(request: functions.Request, response: functions.Response): Promise<boolean> {
+  // Instance ID/Registration token is included in a HTTP request's body.
+  const instanceIdToken = request.body.instanceId;
+  console.log('Instance id is ' + instanceIdToken);
+  if (instanceIdToken && typeof instanceIdToken === 'string') {
+     // Attempts to send a message with the token and dryRun option set to True.
+     // Message will not be actually sent to the recipients.
+     // Instead, the FCM service performs all the necessary validations,
+     // and emulates the send operation.
+     // This is a way to check if a certain message will be accepted
+     // by FCM for delivery.
+     // We use this to verify the Instance ID token.
+     // https://firebase.google.com/docs/reference/admin/dotnet/class/firebase-admin/messaging/firebase-messaging
+    return firebase
+      .messaging()
+      .send({token: instanceIdToken}, true /* dryRun */)
+      .then(result => {
+        console.log('Instance Id specified and verified');
+        return true;
+      })
+      .catch(error =>{
+        console.log('Instance Id specified but not verified');
+        return false;
+      });
+  } else {
+    console.log('No Instance Id specified');
+    return new Promise<boolean>((resolve, reject) => {
+      return false;
+    });
+  }
+}
+
+/**
  * Send HTTPS error response based on HttpsError.
  *
  * @param error HttpsError with the error code and message.
@@ -95,6 +136,8 @@ export function sendHttpsError(error: functions.https.HttpsError, response: func
     code = 401;
   } else if (error.code === 'permission-denied') {
     code = 403;
+  } else if (error.code === 'invalid-argument') {
+    code = 400;
   }
   const data = {
     status: code,
