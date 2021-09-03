@@ -21,6 +21,7 @@ import { PlayBilling } from "../play-billing";
 import * as serviceAccountPlay from '../service-account.json'
 import { InstanceIdManager } from '../model/InstanceIdManager';
 import { ContentManager } from '../model/ContentManager';
+import { FunctionsErrorCode } from 'firebase-functions/lib/providers/https';
 
 /*
  * This file defines shared resources that are used in functions
@@ -57,7 +58,7 @@ export function verifyInstanceIdToken(context: functions.https.CallableContext) 
  * @param idToken Firebase Auth ID Token.
  * @returns Promise that returns a DecodedIdToken or throws HttpsError.
  */
- export function verifyFirebaseAuthIdToken(request: functions.Request, response: functions.Response): Promise<firebase.auth.DecodedIdToken> {
+export function verifyFirebaseAuthIdToken(request: functions.Request, response: functions.Response): Promise<firebase.auth.DecodedIdToken> {
   // The ID token is included in a custom HTTP header.
   // The client must get the ID Token from the Firebase Auth SDK.
   // * https://firebase.google.com/docs/auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients
@@ -95,22 +96,22 @@ export function verifyInstanceIdTokenV2(request: functions.Request, response: fu
   const instanceIdToken = request.body.instanceId;
   console.log('Instance id is ' + instanceIdToken);
   if (instanceIdToken && typeof instanceIdToken === 'string') {
-     // Attempts to send a message with the token and dryRun option set to True.
-     // Message will not be actually sent to the recipients.
-     // Instead, the FCM service performs all the necessary validations,
-     // and emulates the send operation.
-     // This is a way to check if a certain message will be accepted
-     // by FCM for delivery.
-     // We use this to verify the Instance ID token.
-     // https://firebase.google.com/docs/reference/admin/dotnet/class/firebase-admin/messaging/firebase-messaging
+    // Attempts to send a message with the token and dryRun option set to True.
+    // Message will not be actually sent to the recipients.
+    // Instead, the FCM service performs all the necessary validations,
+    // and emulates the send operation.
+    // This is a way to check if a certain message will be accepted
+    // by FCM for delivery.
+    // We use this to verify the Instance ID token.
+    // https://firebase.google.com/docs/reference/admin/dotnet/class/firebase-admin/messaging/firebase-messaging
     return firebase
       .messaging()
-      .send({token: instanceIdToken}, true /* dryRun */)
+      .send({ token: instanceIdToken }, true /* dryRun */)
       .then(result => {
         console.log('Instance Id specified and verified');
         return true;
       })
-      .catch(error =>{
+      .catch(error => {
         console.log('Instance Id specified but not verified');
         return false;
       });
@@ -132,12 +133,14 @@ export function sendHttpsError(error: functions.https.HttpsError, response: func
   let code = 500;
   // See list of possible HttpsError code values.
   // https://firebase.google.com/docs/reference/functions/providers_https_#functionserrorcode
-  if (error.code === 'unauthenticated') {
+  if (error.code === 'invalid-argument') {
+    code = 400;
+  } else if (error.code === 'unauthenticated') {
     code = 401;
   } else if (error.code === 'permission-denied') {
     code = 403;
-  } else if (error.code === 'invalid-argument') {
-    code = 400;
+  } else if (error.code === 'already-exists') {
+    code = 409;
   }
   const data = {
     status: code,
@@ -145,4 +148,18 @@ export function sendHttpsError(error: functions.https.HttpsError, response: func
     message: error.message
   };
   response.status(code).send(data);
+}
+
+/**
+ * Log HTTPS error to the console and throw it.
+ *
+ * @param error Caught error message.
+ * @param code HTTPS FunctionsErrorCode code.
+ * @param message HTTPS string error message.
+ *
+ * @throws HttpsError.
+ */
+export function logAndThrowHttpsError(code: FunctionsErrorCode, error: string) {
+  console.error('Server error: ' + error);
+  throw new functions.https.HttpsError(code, error);
 }
