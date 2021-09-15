@@ -48,8 +48,9 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
     private final MutableLiveData<List<SubscriptionStatus>> subscriptions = new MutableLiveData<>();
     private final MutableLiveData<ContentResource> basicContent = new MutableLiveData<>();
     private final MutableLiveData<ContentResource> premiumContent = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> loading = new MutableLiveData<>();
+    private MutableLiveData<Boolean> loading = new MutableLiveData<>();
     private final RetrofitClient<SubscriptionStatusApiCall> retrofitClient = new RetrofitClient<>(SERVER_URL, SubscriptionStatusApiCall.class);
+    private final PendingRequestCounter pendingRequestCounter = new PendingRequestCounter();
 
     private RemoteServerFunctionImpl() {
     }
@@ -70,6 +71,7 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
      */
     @Override
     public LiveData<Boolean> getLoading() {
+        loading = pendingRequestCounter.getLoading();
         return loading;
     }
 
@@ -108,7 +110,8 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
     @Override
     public void updateBasicContent() {
         final String method = "updateBasicContent";
-        retrofitClient.getService().fetchBasicContent().enqueue(new RetrofitResponseHandlerCallback<ContentResource>(method) {
+        pendingRequestCounter.incrementRequestCount();
+        retrofitClient.getService().fetchBasicContent().enqueue(new RetrofitResponseHandlerCallback<ContentResource>(method, pendingRequestCounter) {
             protected void onSuccess(ContentResource response) {
                 basicContent.postValue(response);
             }
@@ -121,7 +124,8 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
      */
     public void updatePremiumContent() {
         final String method = "updatePremiumContent";
-        retrofitClient.getService().fetchPremiumContent().enqueue(new RetrofitResponseHandlerCallback<ContentResource>(method) {
+        pendingRequestCounter.incrementRequestCount();
+        retrofitClient.getService().fetchPremiumContent().enqueue(new RetrofitResponseHandlerCallback<ContentResource>(method, pendingRequestCounter) {
             @Override
             protected void onSuccess(ContentResource response) {
                 premiumContent.postValue(response);
@@ -134,7 +138,8 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
      */
     public void updateSubscriptionStatus() {
         final String method = "updateSubscriptionStatus";
-        retrofitClient.getService().fetchSubscriptionStatus().enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method) {
+        pendingRequestCounter.incrementRequestCount();
+        retrofitClient.getService().fetchSubscriptionStatus().enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method, pendingRequestCounter) {
             @Override
             protected void onSuccess(Map<String, Object> response) {
                 onSuccessfulSubscriptionCall(response, subscriptions);
@@ -154,7 +159,8 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
         SubscriptionStatus data = new SubscriptionStatus();
         data.sku = sku;
         data.purchaseToken = purchaseToken;
-        retrofitClient.getService().registerSubscription(data).enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method) {
+        pendingRequestCounter.incrementRequestCount();
+        retrofitClient.getService().registerSubscription(data).enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method, pendingRequestCounter) {
             @Override
             protected void onSuccess(Map<String, Object> response) {
                 onSuccessfulSubscriptionCall(response, subscriptions);
@@ -190,7 +196,8 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
         SubscriptionStatus data = new SubscriptionStatus();
         data.sku = sku;
         data.purchaseToken = purchaseToken;
-        retrofitClient.getService().transferSubscription(data).enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method) {
+        pendingRequestCounter.incrementRequestCount();
+        retrofitClient.getService().transferSubscription(data).enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method, pendingRequestCounter) {
             @Override
             protected void onSuccess(Map<String, Object> response) {
                 onSuccessfulSubscriptionCall(response, subscriptions);
@@ -209,7 +216,8 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
         final String method = "registerInstanceId";
         Map<String, String> data = new HashMap<>();
         data.put("instanceId", instanceId);
-        retrofitClient.getService().registerInstanceID(data).enqueue(new RetrofitResponseHandlerCallback<String>(method) {
+        pendingRequestCounter.incrementRequestCount();
+        retrofitClient.getService().registerInstanceID(data).enqueue(new RetrofitResponseHandlerCallback<String>(method, pendingRequestCounter) {
             @Override
             protected void onSuccess(String response) {
                 // A production app may want to track whether registration has been successful to allow for retrying.
@@ -228,7 +236,8 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
         final String method = "unregisterInstanceId";
         Map<String, String> data = new HashMap<>();
         data.put("instanceId", instanceId);
-        retrofitClient.getService().unregisterInstanceID(data).enqueue(new RetrofitResponseHandlerCallback<String>(method) {
+        pendingRequestCounter.incrementRequestCount();
+        retrofitClient.getService().unregisterInstanceID(data).enqueue(new RetrofitResponseHandlerCallback<String>(method, pendingRequestCounter) {
             @Override
             protected void onSuccess(String response) {
                 // A production app may want to track whether un-registration has been successful to allow for retrying.
