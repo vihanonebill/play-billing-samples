@@ -18,6 +18,7 @@ package com.sample.android.classytaxijava.data.network.retrofit.authentication;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sample.android.classytaxijava.data.network.retrofit.ServerFunctionImpl;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -26,7 +27,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 /**
  * Creates Retrofit instances that
- * {@link com.sample.android.classytaxijava.data.network.retrofit.RemoteServerFunctionImpl}
+ * {@link ServerFunctionImpl}
  * uses to make authenticated HTTPS requests.
  *
  * @param <S>
