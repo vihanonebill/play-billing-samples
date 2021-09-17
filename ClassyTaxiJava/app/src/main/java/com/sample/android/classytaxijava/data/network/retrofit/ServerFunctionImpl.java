@@ -41,7 +41,7 @@ import static com.sample.android.classytaxijava.BuildConfig.SERVER_URL;
 /**
  * Implementation of Interfaces with Retrofit.
  */
-public class RemoteServerFunctionImpl implements ServerFunctions {
+public class ServerFunctionImpl implements ServerFunctions {
 
     private static final String TAG = "RemoteServerFunction";
     private static volatile ServerFunctions INSTANCE = null;
@@ -52,14 +52,14 @@ public class RemoteServerFunctionImpl implements ServerFunctions {
     private final RetrofitClient<SubscriptionStatusApiCall> retrofitClient = new RetrofitClient<>(SERVER_URL, SubscriptionStatusApiCall.class);
     private final PendingRequestCounter pendingRequestCounter = new PendingRequestCounter();
 
-    private RemoteServerFunctionImpl() {
+    private ServerFunctionImpl() {
     }
 
     public static ServerFunctions getInstance() {
         if (INSTANCE == null) {
-            synchronized (RemoteServerFunctionImpl.class) {
+            synchronized (ServerFunctionImpl.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new RemoteServerFunctionImpl();
+                    INSTANCE = new ServerFunctionImpl();
                 }
             }
         }
