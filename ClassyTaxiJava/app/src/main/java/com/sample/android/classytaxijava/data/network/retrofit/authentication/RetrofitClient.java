@@ -20,6 +20,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sample.android.classytaxijava.data.network.retrofit.ServerFunctionImpl;
 
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -34,9 +36,13 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
  */
 public class RetrofitClient<S> {
     private final S service;
+    private static final int NETWORK_TIMEOUT_SECONDS = 60;
 
     public RetrofitClient(String baseUrl, Class<S> serviceClass) {
         final OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .addInterceptor(new UserIdTokenInterceptor())
                 .build();
 
