@@ -46,7 +46,7 @@ public class UserIdTokenInterceptor implements Interceptor {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             Log.i(TAG, "user is null");
-            throw new IllegalStateException("user is null");
+            throw new IOException("user is null");
         } else {
             Task<GetTokenResult> task = user.getIdToken(false);
             GetTokenResult Result = null;
@@ -58,7 +58,7 @@ public class UserIdTokenInterceptor implements Interceptor {
             String token = Result.getToken();
             if (token == null) {
                 Log.i(TAG, "token is null");
-                throw new IllegalStateException("token is null");
+                throw new IOException("token is null");
             } else {
                 Request modifiedRequest = request.newBuilder()
                         .addHeader(X_FIREBASE_ID_TOKEN, token)
