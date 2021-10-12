@@ -86,7 +86,7 @@ class PendingRequestCounter {
      *
      * @return loading a LiveData object
      */
-    fun getLoading(): LiveData<Boolean?> {
+    fun getLoading(): LiveData<Boolean> {
         return loading
     }
 
