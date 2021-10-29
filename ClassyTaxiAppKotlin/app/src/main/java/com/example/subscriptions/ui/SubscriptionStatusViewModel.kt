@@ -99,7 +99,7 @@ class SubscriptionStatusViewModel(application: Application) : AndroidViewModel(a
      * Register a new subscription.
      */
     fun registerSubscription(sku: String, purchaseToken: String) =
-            repository.registerSubscription(sku, purchaseToken)
+        repository.registerSubscription(sku, purchaseToken)
 
     /**
      * Transfer the subscription to this account.

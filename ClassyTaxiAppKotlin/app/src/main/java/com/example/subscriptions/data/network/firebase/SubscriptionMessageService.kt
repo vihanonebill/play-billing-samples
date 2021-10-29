@@ -23,14 +23,8 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 class SubscriptionMessageService : FirebaseMessagingService() {
-
-    companion object {
-        private val TAG = SubscriptionMessageService::class.java.simpleName
-        private const val REMOTE_MESSAGE_SUBSCRIPTIONS_KEY = "currentStatus"
-    }
-
-    override fun onMessageReceived(remoteMessage: RemoteMessage?) {
-        remoteMessage?.data?.let {
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        remoteMessage.data.let { it ->
             val data = it
             if (data.isNotEmpty()) {
                 var result: List<SubscriptionStatus>? = null
@@ -47,5 +41,9 @@ class SubscriptionMessageService : FirebaseMessagingService() {
                 }
             }
         }
+    }
+    companion object {
+        private val TAG = SubscriptionMessageService::class.java.simpleName
+        private const val REMOTE_MESSAGE_SUBSCRIPTIONS_KEY = "currentStatus"
     }
 }
