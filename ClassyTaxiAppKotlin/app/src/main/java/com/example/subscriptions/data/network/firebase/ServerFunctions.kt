@@ -16,9 +16,10 @@
 
 package com.example.subscriptions.data.network.firebase
 
-import android.arch.lifecycle.LiveData
+import androidx.lifecycle.LiveData
 import com.example.subscriptions.data.ContentResource
 import com.example.subscriptions.data.SubscriptionStatus
+import com.example.subscriptions.data.network.retrofit.RemoteServerFunctionsImpl
 
 /**
  * Interface to perform the Firebase Function calls and expose the results with [subscriptions].
@@ -94,7 +95,7 @@ interface ServerFunctions {
 
         fun getInstance(): ServerFunctions =
                 INSTANCE ?: synchronized(this) {
-                    INSTANCE ?: ServerFunctionsImpl().also { INSTANCE = it }
+                    INSTANCE ?: RemoteServerFunctionsImpl().also { INSTANCE = it }
                 }
     }
 

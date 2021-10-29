@@ -16,8 +16,8 @@
 
 package com.example.subscriptions.data
 
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.PrimaryKey
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 
@@ -25,29 +25,29 @@ import com.google.gson.JsonSyntaxException
  * Local subscription data. This is stored on disk in a database.
  */
 @Entity(tableName = "subscriptions")
-data class SubscriptionStatus (
-        // Local fields.
-        @PrimaryKey(autoGenerate = true)
-        var primaryKey: Int = 0,
-        var subscriptionStatusJson: String? = null,
-        var subAlreadyOwned: Boolean = false,
-        var isLocalPurchase: Boolean = false,
+data class SubscriptionStatus(
+    // Local fields.
+    @PrimaryKey(autoGenerate = true)
+    var primaryKey: Int = 0,
+    var subscriptionStatusJson: String? = null,
+    var subAlreadyOwned: Boolean = false,
+    var isLocalPurchase: Boolean = false,
 
-        // Remote fields.
-        var sku: String? = null,
-        var purchaseToken: String? = null,
-        var isEntitlementActive: Boolean = false,
-        var willRenew: Boolean = false,
-        var activeUntilMillisec: Long = 0,
-        var isFreeTrial: Boolean = false,
-        var isGracePeriod: Boolean = false,
-        var isAccountHold: Boolean = false,
-        var isPaused: Boolean = false,
-        var autoResumeTimeMillis: Long = 0
+    // Remote fields.
+    var sku: String? = null,
+    var purchaseToken: String? = null,
+    var isEntitlementActive: Boolean = false,
+    var willRenew: Boolean = false,
+    var activeUntilMillisec: Long = 0,
+    var isFreeTrial: Boolean = false,
+    var isGracePeriod: Boolean = false,
+    var isAccountHold: Boolean = false,
+    var isPaused: Boolean = false,
+    var autoResumeTimeMillis: Long = 0
 ) {
 
-    data class SubscriptionStatusList (
-            var subscriptions: List<SubscriptionStatus>?
+    data class SubscriptionStatusList(
+        var subscriptions: List<SubscriptionStatus>?
     )
 
     companion object {
@@ -61,8 +61,8 @@ data class SubscriptionStatus (
         const val IS_FREE_TRIAL_KEY = "isFreeTrial"
         const val IS_GRACE_PERIOD_KEY = "isGracePeriod"
         const val IS_ACCOUNT_HOLD_KEY = "isAccountHold"
-        const val IS_PAUSED_KEY = "isPaused"
-        const val AUTO_RESUME_TIME_MILLISEC_KEY = "autoResumeTimeMillis"
+        private const val IS_PAUSED_KEY = "isPaused"
+        private const val AUTO_RESUME_TIME_MILLISEC_KEY = "autoResumeTimeMillis"
 
         /**
          * Parse subscription data from Map and return null if data is not valid.
@@ -70,7 +70,7 @@ data class SubscriptionStatus (
         fun listFromMap(map: Map<String, Any>): List<SubscriptionStatus>? {
             val subscriptions = ArrayList<SubscriptionStatus>()
             val subList =
-                    map[SUBSCRIPTIONS_KEY] as? ArrayList<Map<String, Any>> ?: return null
+                map[SUBSCRIPTIONS_KEY] as? ArrayList<Map<String, Any>> ?: return null
 
             for (subStatus in subList) {
                 subscriptions.add(SubscriptionStatus().apply {
@@ -128,8 +128,8 @@ data class SubscriptionStatus (
          * a different user, so we need to construct a local record with the basic fields.
          */
         fun alreadyOwnedSubscription(
-                sku: String,
-                purchaseToken: String
+            sku: String,
+            purchaseToken: String
         ): SubscriptionStatus {
             return SubscriptionStatus().apply {
                 this.sku = sku
