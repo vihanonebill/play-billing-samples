@@ -16,9 +16,9 @@
 
 package com.example.subscriptions.data.network.retrofit
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import java.util.concurrent.atomic.AtomicInteger
 
 /**

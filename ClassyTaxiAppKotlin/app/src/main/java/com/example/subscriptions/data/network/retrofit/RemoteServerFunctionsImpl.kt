@@ -16,10 +16,10 @@
 
 package com.example.subscriptions.data.network.retrofit
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
 import android.text.TextUtils
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.subscriptions.data.ContentResource
 import com.example.subscriptions.data.SubscriptionStatus
 import com.example.subscriptions.data.network.firebase.ServerFunctions
