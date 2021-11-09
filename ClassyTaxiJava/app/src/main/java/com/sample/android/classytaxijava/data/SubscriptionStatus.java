@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @Entity(tableName = "subscriptions")
 public class SubscriptionStatus {
-    public class SubscriptionStatusList {
+    public static class SubscriptionStatusList {
         @Nullable
         @SerializedName("subscriptions")
         List<SubscriptionStatus> subscriptionStatuses;
@@ -79,6 +79,20 @@ public class SubscriptionStatus {
     public Long autoResumeTimeMillis = 0L;
 
     /**
+     * Double to Long converter
+     *
+     * @param doubleEntry
+     * @return Long value of the Double
+     */
+    private static Long doubleToLong(Object doubleEntry) {
+        if (doubleEntry != null) {
+            Double newDouble = (Double) doubleEntry;
+            return newDouble.longValue();
+        }
+        return null;
+    }
+
+    /**
      * Parse subscription data from Map and return null if data is not valid.
      */
     @Nullable
@@ -102,14 +116,12 @@ public class SubscriptionStatus {
             subscriptionStatus.purchaseToken = (String) subStatus.get(PURCHASE_TOKEN_KEY);
             subscriptionStatus.isEntitlementActive = (boolean) subStatus.get(IS_ENTITLEMENT_ACTIVE_KEY);
             subscriptionStatus.willRenew = (boolean) subStatus.get(WILL_RENEW_KEY);
-            subscriptionStatus.activeUntilMillisec =
-                    (Long) subStatus.get(ACTIVE_UNTIL_MILLISEC_KEY);
+            subscriptionStatus.activeUntilMillisec = doubleToLong(subStatus.get(ACTIVE_UNTIL_MILLISEC_KEY));
             subscriptionStatus.isFreeTrial = (boolean) subStatus.get(IS_FREE_TRIAL_KEY);
             subscriptionStatus.isGracePeriod = (boolean) subStatus.get(IS_GRACE_PERIOD_KEY);
             subscriptionStatus.isAccountHold = (boolean) subStatus.get(IS_ACCOUNT_HOLD_KEY);
             subscriptionStatus.isPaused = (boolean) subStatus.get(IS_PAUSED_KEY);
-            subscriptionStatus.autoResumeTimeMillis =
-                    (Long) subStatus.get(AUTO_RESUME_TIME_MILLISEC_KEY);
+            subscriptionStatus.autoResumeTimeMillis = doubleToLong(subStatus.get(AUTO_RESUME_TIME_MILLISEC_KEY));
             subscriptions.add(subscriptionStatus);
         }
 
