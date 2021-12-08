@@ -18,6 +18,7 @@ package com.sample.android.classytaxijava.data.network.retrofit;
 
 import com.sample.android.classytaxijava.data.ContentResource;
 import com.sample.android.classytaxijava.data.SubscriptionStatus;
+import com.sample.android.classytaxijava.data.SubscriptionStatusList;
 
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public interface SubscriptionStatusApiCall {
 
     // Fetch Subscription Status.
     @GET(SUBSCRIPTION_STATUS)
-    Call<Map<String, Object>> fetchSubscriptionStatus();
+    Call<SubscriptionStatusList> fetchSubscriptionStatus();
 
     // Registers Instance ID for Firebase Cloud Messaging.
     @PUT(REGISTER_INSTANCE_ID)
@@ -60,9 +61,9 @@ public interface SubscriptionStatusApiCall {
 
     // Registers subscription status to the server.
     @PUT(REGISTER_SUBSCRIPTION)
-    Call<Map<String, Object>> registerSubscription(@Body SubscriptionStatus registerStatus);
+    Call<SubscriptionStatusList> registerSubscription(@Body SubscriptionStatus registerStatus);
 
     // Transfers subscription status to another account.
     @PUT(TRANSFER_SUBSCRIPTION)
-    Call<Map<String, Object>> transferSubscription(@Body SubscriptionStatus transferStatus);
+    Call<SubscriptionStatusList> transferSubscription(@Body SubscriptionStatus transferStatus);
 }

@@ -16,10 +16,9 @@
 
 package com.sample.android.classytaxijava;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.google.firebase.messaging.FirebaseMessagingService;
+
+import androidx.annotation.NonNull;
 
 /**
  * Gets a FCM registration token and sends it to Server for validation and registration.

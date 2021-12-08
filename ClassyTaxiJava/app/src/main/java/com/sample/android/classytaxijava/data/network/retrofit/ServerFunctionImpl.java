@@ -21,11 +21,9 @@ import android.util.Log;
 
 import com.sample.android.classytaxijava.data.ContentResource;
 import com.sample.android.classytaxijava.data.SubscriptionStatus;
+import com.sample.android.classytaxijava.data.SubscriptionStatusList;
 import com.sample.android.classytaxijava.data.network.firebase.ServerFunctions;
 import com.sample.android.classytaxijava.data.network.retrofit.authentication.RetrofitClient;
-
-import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -33,6 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import static com.sample.android.classytaxijava.BuildConfig.SERVER_URL;
@@ -139,9 +140,9 @@ public class ServerFunctionImpl implements ServerFunctions {
     public void updateSubscriptionStatus() {
         final String method = "updateSubscriptionStatus";
         pendingRequestCounter.incrementRequestCount();
-        retrofitClient.getService().fetchSubscriptionStatus().enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method, pendingRequestCounter) {
+        retrofitClient.getService().fetchSubscriptionStatus().enqueue(new RetrofitResponseHandlerCallback<SubscriptionStatusList>(method, pendingRequestCounter) {
             @Override
-            protected void onSuccess(Map<String, Object> response) {
+            protected void onSuccess(SubscriptionStatusList response) {
                 onSuccessfulSubscriptionCall(response, subscriptions);
             }
         });
@@ -157,12 +158,12 @@ public class ServerFunctionImpl implements ServerFunctions {
     public void registerSubscription(String sku, String purchaseToken) {
         final String method = "registerSubscription";
         SubscriptionStatus data = new SubscriptionStatus();
-        data.sku = sku;
-        data.purchaseToken = purchaseToken;
+        data.setSku(sku);
+        data.setPurchaseToken(purchaseToken);
         pendingRequestCounter.incrementRequestCount();
-        retrofitClient.getService().registerSubscription(data).enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method, pendingRequestCounter) {
+        retrofitClient.getService().registerSubscription(data).enqueue(new RetrofitResponseHandlerCallback<SubscriptionStatusList>(method, pendingRequestCounter) {
             @Override
-            protected void onSuccess(Map<String, Object> response) {
+            protected void onSuccess(SubscriptionStatusList response) {
                 onSuccessfulSubscriptionCall(response, subscriptions);
             }
 
@@ -194,12 +195,12 @@ public class ServerFunctionImpl implements ServerFunctions {
     public void transferSubscription(String sku, String purchaseToken) {
         final String method = "transferSubscription";
         SubscriptionStatus data = new SubscriptionStatus();
-        data.sku = sku;
-        data.purchaseToken = purchaseToken;
+        data.setSku(sku);
+        data.setPurchaseToken(purchaseToken);
         pendingRequestCounter.incrementRequestCount();
-        retrofitClient.getService().transferSubscription(data).enqueue(new RetrofitResponseHandlerCallback<Map<String, Object>>(method, pendingRequestCounter) {
+        retrofitClient.getService().transferSubscription(data).enqueue(new RetrofitResponseHandlerCallback<SubscriptionStatusList>(method, pendingRequestCounter) {
             @Override
-            protected void onSuccess(Map<String, Object> response) {
+            protected void onSuccess(SubscriptionStatusList response) {
                 onSuccessfulSubscriptionCall(response, subscriptions);
             }
         });
@@ -265,7 +266,7 @@ public class ServerFunctionImpl implements ServerFunctions {
 
         boolean subscriptionAdded = false;
         for (SubscriptionStatus subscription : oldSubscriptions) {
-            if (TextUtils.equals(subscription.sku, newSubscription.sku)) {
+            if (TextUtils.equals(subscription.getSku(), newSubscription.getSku())) {
                 subscriptionStatuses.add(newSubscription);
                 subscriptionAdded = true;
             } else {
@@ -284,18 +285,16 @@ public class ServerFunctionImpl implements ServerFunctions {
      * Called when a successful response returns from the server
      * for a {@link SubscriptionStatus} HTTPS call
      *
-     * @param responseBody  Successful subscription statuses response object
+     * @param subscriptionStatusList  Successful {@link SubscriptionStatusList} response object
      * @param subscriptions LiveData subscription list
      */
-    protected void onSuccessfulSubscriptionCall(Map<String, Object> responseBody, @Nullable MutableLiveData<List<SubscriptionStatus>> subscriptions) {
-        List subs = (List) responseBody.get("subscriptions");
-        if (subs.isEmpty()) {
+    protected void onSuccessfulSubscriptionCall(SubscriptionStatusList subscriptionStatusList, @Nullable MutableLiveData<List<SubscriptionStatus>> subscriptions) {
+        if (subscriptionStatusList.getSubscriptions() == null || subscriptionStatusList.getSubscriptions().isEmpty()) {
             Log.w(TAG, "Invalid subscription data");
             return;
         }
         Log.i(TAG, "Valid subscription data");
-        List<SubscriptionStatus> subList = SubscriptionStatus.listFromMap(responseBody);
-        subscriptions.postValue(subList);
+        subscriptions.postValue(subscriptionStatusList.getSubscriptions());
     }
 }
 
