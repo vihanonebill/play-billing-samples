@@ -18,8 +18,6 @@ package com.example.subscriptions.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 
 /**
  * Local subscription data. This is stored on disk in a database.
@@ -46,81 +44,7 @@ data class SubscriptionStatus(
     var autoResumeTimeMillis: Long = 0
 ) {
 
-    data class SubscriptionStatusList(
-        var subscriptions: List<SubscriptionStatus>?
-    )
-
     companion object {
-
-        const val SUBSCRIPTIONS_KEY = "subscriptions"
-        const val SKU_KEY = "sku"
-        const val PURCHASE_TOKEN_KEY = "purchaseToken"
-        const val IS_ENTITLEMENT_ACTIVE_KEY = "isEntitlementActive"
-        const val WILL_RENEW_KEY = "willRenew"
-        const val ACTIVE_UNTIL_MILLISEC_KEY = "activeUntilMillisec"
-        const val IS_FREE_TRIAL_KEY = "isFreeTrial"
-        const val IS_GRACE_PERIOD_KEY = "isGracePeriod"
-        const val IS_ACCOUNT_HOLD_KEY = "isAccountHold"
-        private const val IS_PAUSED_KEY = "isPaused"
-        private const val AUTO_RESUME_TIME_MILLISEC_KEY = "autoResumeTimeMillis"
-
-        /**
-         * Parse subscription data from Map and return null if data is not valid.
-         */
-        fun listFromMap(map: Map<String, Any>): List<SubscriptionStatus>? {
-            val subscriptions = ArrayList<SubscriptionStatus>()
-            val subList =
-                map[SUBSCRIPTIONS_KEY] as? ArrayList<Map<String, Any>> ?: return null
-
-            for (subStatus in subList) {
-                subscriptions.add(SubscriptionStatus().apply {
-                    (subStatus[SKU_KEY] as? String?)?.let {
-                        sku = it
-                    }
-                    (subStatus[PURCHASE_TOKEN_KEY] as? String?)?.let {
-                        purchaseToken = it
-                    }
-                    (subStatus[IS_ENTITLEMENT_ACTIVE_KEY] as? Boolean)?.let {
-                        isEntitlementActive = it
-                    }
-                    (subStatus[WILL_RENEW_KEY] as? Boolean)?.let {
-                        willRenew = it
-                    }
-                    (subStatus[ACTIVE_UNTIL_MILLISEC_KEY] as? Long)?.let {
-                        activeUntilMillisec = it
-                    }
-                    (subStatus[IS_FREE_TRIAL_KEY] as? Boolean)?.let {
-                        isFreeTrial = it
-                    }
-                    (subStatus[IS_GRACE_PERIOD_KEY] as? Boolean)?.let {
-                        isGracePeriod = it
-                    }
-                    (subStatus[IS_ACCOUNT_HOLD_KEY] as? Boolean)?.let {
-                        isAccountHold = it
-                    }
-                    (subStatus[IS_PAUSED_KEY] as? Boolean)?.let {
-                        isPaused = it
-                    }
-                    (subStatus[AUTO_RESUME_TIME_MILLISEC_KEY] as? Long)?.let {
-                        autoResumeTimeMillis = it
-                    }
-                })
-            }
-            return subscriptions
-        }
-
-        /**
-         * Parse subscription data from String and return null if data is not valid.
-         */
-        fun listFromJsonString(dataString: String): List<SubscriptionStatus>? {
-            val gson = Gson()
-            return try {
-                gson.fromJson(dataString, SubscriptionStatusList::class.java)?.subscriptions
-            } catch (e: JsonSyntaxException) {
-                null
-            }
-        }
-
         /**
          * Create a record for a subscription that is already owned by a different user.
          *
@@ -138,8 +62,8 @@ data class SubscriptionStatus(
                 subAlreadyOwned = true
             }
         }
-
     }
 
 }
+
 

@@ -20,12 +20,13 @@ import android.text.TextUtils
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.subscriptions.BuildConfig.SERVER_URL
 import com.example.subscriptions.data.ContentResource
 import com.example.subscriptions.data.SubscriptionStatus
+import com.example.subscriptions.data.SubscriptionStatusList
 import com.example.subscriptions.data.network.firebase.ServerFunctions
 import com.example.subscriptions.data.network.retrofit.authentication.RetrofitClient
 import java.net.HttpURLConnection
-import com.example.subscriptions.BuildConfig.SERVER_URL
 
 
 /**
@@ -101,8 +102,8 @@ class RemoteServerFunctionsImpl : ServerFunctions {
         val method = "updateSubscriptionStatus"
         pendingRequestCounter.incrementRequestCount()
         retrofitClient.getService().fetchSubscriptionStatus().enqueue(object :
-            RetrofitResponseHandlerCallback<Map<String, Any>>(method, pendingRequestCounter) {
-            override fun onSuccess(response: Map<String, Any>) {
+            RetrofitResponseHandlerCallback<SubscriptionStatusList>(method, pendingRequestCounter) {
+            override fun onSuccess(response: SubscriptionStatusList) {
                 onSuccessfulSubscriptionCall(response, subscriptions)
             }
         })
@@ -118,8 +119,8 @@ class RemoteServerFunctionsImpl : ServerFunctions {
         data.purchaseToken = purchaseToken
         pendingRequestCounter.incrementRequestCount()
         retrofitClient.getService().registerSubscription(data).enqueue(object :
-            RetrofitResponseHandlerCallback<Map<String, Any>>(method, pendingRequestCounter) {
-            override fun onSuccess(response: Map<String, Any>) {
+            RetrofitResponseHandlerCallback<SubscriptionStatusList>(method, pendingRequestCounter) {
+            override fun onSuccess(response: SubscriptionStatusList) {
                 onSuccessfulSubscriptionCall(response, subscriptions)
             }
 
@@ -127,8 +128,7 @@ class RemoteServerFunctionsImpl : ServerFunctions {
                 if (errorCode == HttpURLConnection.HTTP_CONFLICT) {
                     Log.w(TAG, "Subscription already exists")
                     val oldSubscriptions = subscriptions.value
-                    val newSubscription = SubscriptionStatus
-                        .alreadyOwnedSubscription(sku, purchaseToken)
+                    val newSubscription = newSub(sku, purchaseToken)
                     val newSubscriptions = insertOrUpdateSubscription(
                         oldSubscriptions,
                         newSubscription
@@ -150,8 +150,8 @@ class RemoteServerFunctionsImpl : ServerFunctions {
         data.purchaseToken = purchaseToken
         pendingRequestCounter.incrementRequestCount()
         retrofitClient.getService().transferSubscription(data).enqueue(object :
-            RetrofitResponseHandlerCallback<Map<String, Any>>(method, pendingRequestCounter) {
-            override fun onSuccess(response: Map<String, Any>) {
+            RetrofitResponseHandlerCallback<SubscriptionStatusList>(method, pendingRequestCounter) {
+            override fun onSuccess(response: SubscriptionStatusList) {
                 onSuccessfulSubscriptionCall(response, subscriptions)
             }
         })
@@ -188,7 +188,7 @@ class RemoteServerFunctionsImpl : ServerFunctions {
     }
 
 
-    // Helper functions
+// Helper functions
     /**
      * Inserts or updates the subscription to the list of existing com.example.subscriptions.
      *
@@ -226,21 +226,23 @@ class RemoteServerFunctionsImpl : ServerFunctions {
      * @param subscriptions LiveData subscription list
      */
     private fun onSuccessfulSubscriptionCall(
-        responseBody: Map<String, Any>,
+        responseBody: SubscriptionStatusList,
         subscriptions: MutableLiveData<List<SubscriptionStatus>>
     ) {
-        val subs = responseBody["subscriptions"] as List<*>?
+        val subs = responseBody.subscriptions
         if (subs == null || subs.isEmpty()) {
             Log.w(TAG, "Invalid subscription data")
             return
         }
         Log.i(TAG, "Valid subscription data")
-        val subList = SubscriptionStatus.listFromMap(responseBody)
-        subscriptions.postValue(subList)
+        subscriptions.postValue(subs)
     }
 
     companion object {
         private const val TAG = "RemoteServerFunction"
+        fun newSub(sku: String, purchaseToken: String): SubscriptionStatus {
+            return SubscriptionStatus.alreadyOwnedSubscription(sku, purchaseToken)
+        }
     }
 
 }

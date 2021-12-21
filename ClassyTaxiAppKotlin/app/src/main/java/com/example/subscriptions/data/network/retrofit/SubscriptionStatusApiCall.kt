@@ -2,6 +2,7 @@ package com.example.subscriptions.data.network.retrofit
 
 import com.example.subscriptions.data.ContentResource
 import com.example.subscriptions.data.SubscriptionStatus
+import com.example.subscriptions.data.SubscriptionStatusList
 
 import retrofit2.Call
 import retrofit2.http.Body
@@ -23,7 +24,7 @@ interface SubscriptionStatusApiCall {
 
     // Fetch Subscription Status.
     @GET("subscription_status_v2")
-    abstract fun fetchSubscriptionStatus(): Call<Map<String, Any>>
+    abstract fun fetchSubscriptionStatus(): Call<SubscriptionStatusList>
 
     // Registers Instance ID for Firebase Cloud Messaging.
     @PUT("subscription_register_v2")
@@ -35,9 +36,9 @@ interface SubscriptionStatusApiCall {
 
     // Registers subscription status to the server.
     @PUT("subscription_register_v2")
-    abstract fun registerSubscription(@Body registerStatus: SubscriptionStatus): Call<Map<String, Any>>
+    abstract fun registerSubscription(@Body registerStatus: SubscriptionStatus): Call<SubscriptionStatusList>
 
     // Transfers subscription status to another account.
     @PUT("subscription_transfer_v2")
-    abstract fun transferSubscription(@Body transferStatus: SubscriptionStatus): Call<Map<String, Any>>
+    abstract fun transferSubscription(@Body transferStatus: SubscriptionStatus): Call<SubscriptionStatusList>
 }
