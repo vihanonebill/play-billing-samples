@@ -32,7 +32,7 @@ import java.net.HttpURLConnection
 /**
  * Implementation of [ServerFunctions] using Retrofit.
  */
-class RemoteServerFunctionsImpl : ServerFunctions {
+class ServerFunctionsImpl : ServerFunctions {
 
     private val retrofitClient = RetrofitClient(SERVER_URL, SubscriptionStatusApiCall::class.java)
 

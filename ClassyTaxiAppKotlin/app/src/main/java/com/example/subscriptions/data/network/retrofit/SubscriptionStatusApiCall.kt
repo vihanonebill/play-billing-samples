@@ -10,7 +10,7 @@ import retrofit2.http.GET
 import retrofit2.http.PUT
 
 /**
- * [SubscriptionStatusApiCall] defines the API endpoints that are called in [RemoteServerFunctionsImpl].
+ * [SubscriptionStatusApiCall] defines the API endpoints that are called in [ServerFunctionsImpl].
  */
 interface SubscriptionStatusApiCall {
 
