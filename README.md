@@ -4,9 +4,9 @@ Sample applications for Google Play Billing. To build each sample, see the READM
 
 * [Trivial Drive Java](https://github.com/android/play-billing-samples/tree/master/TrivialDriveJava) - Purchase items/subscriptions in your Android app (serverless).
 * [Trivial Drive Kotlin](https://github.com/android/play-billing-samples/tree/master/TrivialDriveKotlin) - Purchase items/subscriptions in your Android app (serverless).
-* [Classy Taxi Kotlin App](https://github.com/android/play-billing-samples/tree/master/ClassyTaxiAppKotlin) - Purchase subscriptions in your Android app and manage subscriptions on your server.
-* [Classy Taxi Java App](https://github.com/android/play-billing-samples/tree/master/ClassyTaxiJava) - Purchase subscriptions in your Android app and manage subscriptions on your server.
-* [Classy Taxi Server](https://github.com/android/play-billing-samples/tree/master/ClassyTaxiServer) - Manage subscriptions on your server.
+* [Classy Taxi Kotlin App](https://github.com/vihanonebill/play-billing-samples/tree/google_in_app/ClassyTaxiAppKotlin) - Purchase subscriptions in your Android app and manage subscriptions on your server.
+* [Classy Taxi Java App](https://github.com/vihanonebill/play-billing-samples/tree/google_in_app/ClassyTaxiJava) - Purchase subscriptions in your Android app and manage subscriptions on your server.
+* [Classy Taxi Server](https://github.com/vihanonebill/play-billing-samples/tree/google_in_app/ClassyTaxiServer) - Manage subscriptions on your server.
 
 
 ## Google Play Billing
